@@ -1,0 +1,3898 @@
+//This code works off of Game Maker's object system
+
+Information about object: obj_wall
+Sprite: spr_wall
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: obj_solid
+
+Children
+obj_breakableWall
+obj_wallTrap1L
+obj_wallTrap1R
+
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_solid
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+
+Children
+obj_wall
+obj_floor
+obj_platform
+
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_portal
+Sprite: spr_roomChange
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Collision Event with object obj_player:
+
+execute code:
+
+///player changes rooms
+
+obj_player.x = target_x;
+obj_player.y = target_y;
+room_goto(target_room);
+
+______________________________________________________
+
+Information about object: obj_platform1
+Sprite: spr_platform1
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: obj_platform
+
+Children
+obj_horiPlatform6
+obj_horiPlatform3
+obj_vertPlatform3
+
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_floor
+Sprite: spr_floor
+Solid: false
+Visible: false
+Depth: -1
+Persistent: false
+Parent: obj_solid
+
+Children
+obj_floorInstantDisappear
+obj_breakableFloor
+
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_floorInstantDisappear
+Sprite: spr_black
+Solid: false
+Visible: false
+Depth: -1
+Persistent: false
+Parent: obj_floor
+Children: 
+Mask: 
+
+No Physics Object
+Step Event:
+
+execute code:
+
+///destroy upon contact with playerWalk and stand
+
+if (instance_exists(obj_playerStand) || instance_exists (obj_playerWalk))
+    instance_destroy();
+
+______________________________________________________
+
+Information about object: obj_platform
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_solid
+
+Children
+obj_platform1
+
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_breakableFloor
+Sprite: spr_breakableSolid
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: obj_floor
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///set tile
+randomize();
+if (irandom(2) == 0)
+    tile_add(tile_hub1,48,84,12,12,x,y,1000000);
+else if (irandom(2) == 1)
+    tile_add(tile_hub1,60,84,12,12,x,y,1000000);
+else
+    tile_add(tile_hub1,72,84,12,12,x,y,1000000);
+    
+
+Destroy Event:
+
+execute code:
+
+///delete overlying tile
+tile = tile_layer_find(1000000,x,y);
+
+tile_delete(tile);
+
+Step Event:
+
+execute code:
+
+///proximity to bombExplosion death
+
+
+
+Collision Event with object obj_bombExplosion:
+
+execute code:
+
+instance_destroy();
+if (instance_exists(obj_bombExplosion)){
+    var explosion = instance_nearest(x,y,obj_bombExplosion);
+    
+    for (i = 0; i < instance_number(obj_breakableFloor); i += 1){
+       ids[i] = instance_find(obj_breakableFloor,i);
+       with(ids[i]){
+            if (abs(explosion.x - x)) <= 14 && abs(explosion.y - y <= 14){
+                instance_destroy();
+            }
+       }
+    }
+}
+
+______________________________________________________
+
+Information about object: obj_breakableWall
+Sprite: spr_breakableSolid
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: obj_wall
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///set tile
+randomize();
+if (irandom(2) == 0)
+    tile_add(tile_hub1,48,84,12,12,x,y,1000000);
+else if (irandom(2) == 1)
+    tile_add(tile_hub1,60,84,12,12,x,y,1000000);
+else
+    tile_add(tile_hub1,72,84,12,12,x,y,1000000);
+
+Collision Event with object obj_bombExplosion:
+
+destroy the instance
+execute code:
+
+///delete overlying tile
+tile = tile_layer_find(1000000,x,y);
+
+tile_delete(tile);
+
+______________________________________________________
+
+Information about object: obj_respawnBreakableFloor
+Sprite: spr_breakableSolid
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Other Event: Room Start:
+
+execute code:
+
+///create breakable floor whenever room starts
+
+instance_create(x,y,obj_breakableFloor);
+
+______________________________________________________
+
+Information about object: obj_horiPlatform6
+Sprite: spr_movingPlatform6
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_platform1
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+facing = FACE_LEFT;
+flag = false;
+
+Step Event:
+
+execute code:
+
+if(facing == FACE_LEFT){
+    hspeed = -1;
+}
+if(facing == FACE_RIGHT){
+    hspeed = 1;
+}
+
+if(place_meeting(x,y-1,obj_player) && obj_player.y+12 < y){
+    obj_player.x += hspeed;
+}
+
+/*
+if(place_meeting(x, y, obj_platformLimit)){
+    facing = -facing;
+}
+*/
+
+Collision Event with object obj_platformLimit:
+
+execute code:
+
+x = xprevious;
+facing = -facing;
+flag = true;
+
+Collision Event with object obj_player:
+
+execute code:
+
+///player fall off cleanly
+
+if(global.playerX < x){
+    exit;
+}
+if(global.playerX > x + 72)
+    exit;
+
+______________________________________________________
+
+Information about object: obj_horiPlatform3
+Sprite: spr_movingPlatform3
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_platform1
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+facing = FACE_LEFT;
+flag = false;
+
+Step Event:
+
+execute code:
+
+if(facing == FACE_LEFT){
+    hspeed = -1;
+}
+if(facing == FACE_RIGHT){
+    hspeed = 1;
+}
+
+if(place_meeting(x,y-1,obj_player) && obj_player.y+12 < y){
+    obj_player.x += hspeed;
+}
+
+/*
+if(place_meeting(x, y, obj_platformLimit)){
+    facing = -facing;
+}
+*/
+
+Collision Event with object obj_platformLimit:
+
+execute code:
+
+x = xprevious;
+facing = -facing;
+flag = true;
+
+Collision Event with object obj_player:
+
+execute code:
+
+///player fall off cleanly
+
+if(global.playerX < x){
+    exit;
+}
+if(global.playerX > x + 72)
+    exit;
+
+______________________________________________________
+
+Information about object: obj_vertPlatform3
+Sprite: spr_movingPlatform3
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_platform1
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+facing = FACE_LEFT;
+flag = false;
+pfacing = FACE_LEFT;
+
+Step Event:
+
+execute code:
+
+
+vspeed = facing;
+
+
+
+if(place_meeting(x,y-1,obj_player) && obj_player.y+12 < y){
+    //obj_player.y += vspeed;
+    if (pfacing != facing){
+        obj_player.y += 2*pfacing;
+        pfacing = facing;
+    }
+    obj_player.vspeed = vspeed;
+}
+
+/*
+if(place_meeting(x, y, obj_platformLimit)){
+    facing = -facing;
+}
+*/
+
+Collision Event with object obj_platformLimit:
+
+execute code:
+
+y = yprevious;
+pfacing = facing;
+facing = -facing;
+flag = true;
+
+
+
+
+Collision Event with object obj_player:
+
+execute code:
+
+///player fall off cleanly
+
+if(global.playerX < x){
+    exit;
+}
+if(global.playerX > x + 72)
+    exit;
+
+______________________________________________________
+
+Information about object: obj_platformLimit
+Sprite: spr_enemyLimit
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_shootEnemy
+Sprite: spr_shootEnemyStandLeft
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_enemy
+Children: 
+Mask: spr_shootEnemyStandLeft
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///init
+state = ESTATE_MOVE;
+facing = FACE_LEFT;
+walkface = FACE_LEFT;
+canShoot = true;
+
+hitpoints = 2;
+
+gravity = 0;
+vspeed = 0;
+
+Alarm Event for alarm 0:
+
+execute code:
+
+if(!place_meeting(x + (walkface * 12), y+1, obj_platform)){
+    facing = -facing;
+    walkface = -walkface;
+}
+if(place_meeting(x + (walkface * 12), y, obj_enemyLimit)){
+    facing = -facing;
+    walkface = -walkface;
+}
+if(floor(random(150)) < 50){
+    facing = -facing;
+    walkface = -walkface;
+}
+
+if (abs(global.playerY + 13 - y) < 25){
+    if (global.playerX < x)
+        facing = FACE_LEFT;
+    else
+        facing = FACE_RIGHT;
+}
+
+state = ESTATE_MOVE;
+
+Alarm Event for alarm 1:
+
+execute code:
+
+///canShoot = true;
+
+canShoot = true;
+
+Step Event:
+
+execute code:
+
+if(state == ESTATE_STAND){
+    hspeed = 0;
+}
+
+
+if(state == ESTATE_MOVE){
+    hspeed = walkface;
+    if(!place_meeting(x + (walkface * 12), y+1, obj_solid)){
+        walkface = -walkface;
+        facing = -facing;
+        x = xprevious;
+    }
+    if(place_meeting(x + (walkface * 12), y, obj_enemyLimit)){
+        walkface = -walkface;
+        facing = -facing;
+        x = xprevious;
+    }
+    if(floor(random(30)) == 0){
+        state = ESTATE_DECIDE;
+    }
+}
+
+
+
+if(state == ESTATE_DECIDE){
+    if(point_distance(x, y, global.playerX, global.playerY) < 150){
+        if(floor(random(100)) > 25){
+            state = ESTATE_ATTACK;
+        }else{
+            state = ESTATE_STAND;
+            alarm[0] = 30;
+        }
+    }else{
+        state = ESTATE_STAND;   
+        alarm[0] = 30;
+    }
+}
+// face player
+if (abs(global.playerY + 13 - y) < 4 && abs(global.playerX - x) < 300){
+    if (global.playerX < x)
+        facing = FACE_LEFT;
+    else
+        facing = FACE_RIGHT;
+}else{
+    facing = walkface;
+}
+
+if(state == ESTATE_ATTACK){
+    hspeed = 0;
+    if (canShoot){
+        instanceID = instance_create(x, y, obj_shootEnemy_projectile);
+        instanceID.x = (facing * 5) + x;
+        instanceID.y = y - 24;
+        instanceID.hspeed = facing * 3;
+        canShoot = false;
+        alarm[1] = 30;
+    }
+        
+    state = ESTATE_MOVE;
+}
+
+
+
+execute code:
+
+///die
+
+if (hitpoints <= 0){
+    instance_destroy();
+}
+
+Draw Event:
+
+execute code:
+
+
+if(facing == FACE_LEFT){
+    if(state == ESTATE_STAND){
+        image_speed = 1/8;
+        draw_sprite(spr_shootEnemyStandLeft,-1,x,y);
+    }else if(state == ESTATE_MOVE){
+        if (walkface == facing)
+            image_speed = 1/3;
+        else
+            image_speed = -1/3;
+        draw_sprite(spr_shootEnemyWalkLeft,-1,x,y);
+    }else if(state == ESTATE_ATTACK){
+        if (walkface == facing)
+            image_speed = 1/3;
+        else
+            image_speed = -1/3;
+        draw_sprite(spr_shootEnemyWalkLeft,-1,x,y);
+    }
+}else if(facing == FACE_RIGHT){
+    if(state == ESTATE_STAND){
+        image_speed = 1/8;
+        draw_sprite(spr_shootEnemyStandRight,-1,x,y);
+    }else if(state == ESTATE_MOVE){
+        if (walkface == facing)
+            image_speed = 1/3;
+        else
+            image_speed = -1/3;
+        draw_sprite(spr_shootEnemyWalkRight,-1,x,y);
+    }else if(state == ESTATE_ATTACK){
+        if (walkface == facing)
+            image_speed = 1/3;
+        else
+            image_speed = -1/3;
+        draw_sprite(spr_shootEnemyWalkRight,-1,x,y);
+    }
+}
+
+______________________________________________________
+
+Information about object: obj_walkEnemy
+Sprite: spr_walkEnemyStandRight
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_enemy
+Children: 
+Mask: spr_walkEnemyStandRight
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///init
+canChange = true;
+canTurn = true;
+state = ESTATE_STAND;
+facing = FACE_LEFT; //might want to initialize certain facings in the creation code
+
+gravity = 0;
+vspeed = 0;
+image_speed = 1/3;
+
+hitpoints = 2;
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///dom movement, decide things
+
+if (irandom(10) > 7){
+    state = ESTATE_STAND;
+}else{
+    state = ESTATE_MOVE
+}
+
+if (state = ESTATE_STAND){
+    hspeed = 0;
+}
+
+if (state = ESTATE_MOVE && canTurn){
+    if (irandom(2) == 1)
+        facing = FACE_LEFT;
+    else
+        facing = FACE_RIGHT; 
+}
+
+canChange = true;
+canTurn = true;
+
+Step Event:
+
+execute code:
+
+///die
+
+if (hitpoints <= 0){
+    instance_destroy();
+}
+
+execute code:
+
+ ///movement
+
+if (state = ESTATE_MOVE){
+   hspeed = facing;
+}
+
+if(!place_meeting(x + (facing * 20), y+1, obj_solid)){
+    facing = -facing;
+    alarm[0] = 1;
+    x = xprevious;
+    canTurn = false;
+}
+
+floor_id = instance_place(x,y+2,obj_solid);
+
+if(floor_id == global.floor_id && place_meeting(obj_player.x,obj_player.y+16,obj_solid)){
+    if (abs(global.playerX - x) < 240){
+            if (global.playerX < x){
+                    facing = FACE_LEFT;
+                    hspeed = facing*1.5;
+                    
+            }else{
+                    facing = FACE_RIGHT;
+                    hspeed = facing*1.5;
+            }
+    }
+}
+
+if canChange = true{
+    alarm[0] = 20;
+}
+canChange = false;
+
+
+Collision Event with object obj_solid:
+
+execute code:
+
+if(place_meeting(x,y,obj_platform1))
+    exit;
+else{
+    facing = -facing;
+    alarm[0] = 20;
+    x = xprevious;
+}
+
+Draw Event:
+
+execute code:
+
+///draw sprite based on PLAYER facing
+
+if (global.playerX < x){
+    draw_sprite(spr_walkEnemyStandLeft,-1,x,y);
+}else{
+    draw_sprite(spr_walkEnemyStandRight,-1,x,y);
+}
+
+______________________________________________________
+
+Information about object: obj_enemyLimit
+Sprite: spr_enemyLimit
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_enemy
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_damage
+
+Children
+obj_shootEnemy
+obj_walkEnemy
+obj_boss1
+
+Mask: 
+
+No Physics Object
+Destroy Event:
+
+execute code:
+
+///random drop of health
+
+if(irandom(3) == 0)
+    instance_create(x,y-sprite_height/1.2,obj_healthHeart1DROP);
+else if (irandom(14) == 0){
+    instance_create(x,y-sprite_height/1.2,obj_lifeDROP);
+}
+
+Collision Event with object obj_playerBombDown:
+
+execute code:
+
+//health decrement
+
+hitpoints -= 1;
+
+Collision Event with object obj_playerBombPlaced:
+
+execute code:
+
+//health decrement
+
+hitpoints -= 1;
+
+Collision Event with object obj_playerBomb:
+
+execute code:
+
+//health decrement
+
+hitpoints -= 1;
+
+______________________________________________________
+
+Information about object: obj_damage
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+
+Children
+obj_enemy
+obj_shootEnemy_projectile
+obj_fallDeath
+obj_trapShot1
+obj_acidDrop
+obj_greenBomb
+obj_greenSplash
+obj_beam408H2
+
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_shootEnemy_projectile
+Sprite: spr_shootEnemyProjectile
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_damage
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///animate speed
+
+image_speed = 1/4
+
+Collision Event with object obj_solid:
+
+destroy the instance
+Other Event: Outside Room:
+
+destroy the instance
+______________________________________________________
+
+Information about object: obj_death
+Sprite: spr_death
+Solid: true
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: spr_floor
+
+No Physics Object
+Collision Event with object obj_player:
+
+execute code:
+
+///kill player
+
+
+if(!(instance_exists(obj_playerDead))){
+    with(obj_player){
+        canHurt = true;
+        instance_change(obj_playerDead,true);
+    }
+}
+
+______________________________________________________
+
+Information about object: obj_fallDeath
+Sprite: spr_death
+Solid: true
+Visible: false
+Depth: 0
+Persistent: false
+Parent: obj_damage
+Children: 
+Mask: spr_floor
+
+No Physics Object
+Collision Event with object obj_player:
+
+execute code:
+
+///kill player
+
+with(obj_player){
+    instance_destroy();
+    global.Lives -= 1;
+    if (global.Lives < 0)
+        room_goto(Room_GameOver);
+    else
+        scr_death();
+}
+
+______________________________________________________
+
+Information about object: obj_wallTrap1L
+Sprite: spr_wallTrap1L
+Solid: false
+Visible: true
+Depth: -10
+Persistent: false
+Parent: obj_wall
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+set Alarm 0 to random(30)
+Alarm Event for alarm 0:
+
+execute code:
+
+///shootChance function, firing
+
+bullet = instance_create(x,y,obj_trapShot1);
+bullet.hspeed = -3;
+
+
+alarm[0]=120;
+
+
+
+//Use the following commented out code for randomized firing for any enemy
+/*
+shootChance = irandom(2);
+
+if (shootChance == 2){
+    instance_create(x,y,obj_trapShot1);
+    obj_trapShot1.hspeed = -2.5;
+}*/
+
+
+
+
+
+______________________________________________________
+
+Information about object: obj_wallTrap1R
+Sprite: spr_wallTrap1R
+Solid: false
+Visible: true
+Depth: -10
+Persistent: false
+Parent: obj_wall
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+set Alarm 0 to random(30)
+Alarm Event for alarm 0:
+
+execute code:
+
+///shootChance function, firing
+
+bullet = instance_create(x,y,obj_trapShot1);
+bullet.hspeed = 3;
+
+
+alarm[0]=120;
+
+
+
+//Use the following commented out code for randomized firing for any enemy
+/*
+shootChance = irandom(2);
+
+if (shootChance == 2){
+    instance_create(x,y,obj_trapShot1);
+    obj_trapShot1.hspeed = -2.5;
+}*/
+
+
+
+
+
+______________________________________________________
+
+Information about object: obj_trapShot1
+Sprite: spr_trapShot1
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_damage
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///wall collision control
+
+canCollide = false;
+alarm[0] = 10;
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///canCollide = true
+canCollide = true;
+
+Collision Event with object obj_wall:
+
+execute code:
+
+///Destroy the instance
+if(canCollide)
+    instance_destroy();
+
+Collision Event with object obj_floor:
+
+execute code:
+
+///destroy
+if (canCollide)
+    instance_destroy();
+
+______________________________________________________
+
+Information about object: obj_acidSpawn
+Sprite: 
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///random initialization
+
+canDrop = 0;
+alarm[0] = irandom(120);
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///drop acid, set canDrop to true
+
+if(global.canDrops = true){
+
+instance_create(x,y,obj_acidDrop);
+
+canDrop = 1;
+}
+
+Step Event:
+
+execute code:
+
+///decide to drop acid
+
+if canDrop == 1{
+    waitTime = irandom(1);
+    if (waitTime == 0){
+        alarm[0] = 90;
+    }else{
+        alarm[0] = 45;
+    }
+    canDrop = 0;
+}
+
+______________________________________________________
+
+Information about object: obj_acidDrop
+Sprite: spr_acidDrop
+Solid: false
+Visible: true
+Depth: -200
+Persistent: false
+Parent: obj_damage
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///fall, animation control variables
+
+image_speed = 0;
+
+canAnimate = 1;
+image_index = 0;
+
+canSound = true;
+
+state = 0;
+
+Step Event:
+
+execute code:
+
+///everything the drop does
+
+if (vspeed > 10){
+    vspeed = 10;
+}
+
+if (place_meeting(x,y+vspeed,obj_solid)){
+    move_contact_all(270,-1);
+    vspeed = 0;
+    gravity = 0;
+    canAnimate = true;
+    state = 1;
+    
+}
+
+if(state == 1 && canSound && image_index > 2){
+    audio_play_sound(snd_acid,1,false);
+    canSound = false;    
+}
+
+if (canAnimate == true){
+    image_index += 0.25;
+}
+
+if (image_index == 2){
+    canAnimate = false;
+    gravity = .5;
+}
+
+if (image_index >= 6.5){
+    instance_destroy()
+}
+
+
+Other Event: Outside Room:
+
+execute code:
+
+///destroy instance
+
+instance_destroy();
+
+______________________________________________________
+
+Information about object: obj_playerAir
+Sprite: spr_playerJumpR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///initialize shit
+state = STATE_JUMP;
+
+gravity = .5;
+gravity_direction = 270;
+
+
+y_count = 0;
+y_counter = false;
+
+execute code:
+
+///variable to prevent from turning while throwing bomb
+
+global.throwTurnRestrict = false;
+
+Step Event:
+
+execute code:
+
+///falling
+
+if(vspeed > 0){
+    state = STATE_FALL;
+}
+
+if (vspeed > 11.5)
+    vspeed = 11.5;
+
+
+execute code:
+
+///midair movement
+
+if(keyboard_check(ord("A"))){
+    hspeed = -2;
+}
+
+if(keyboard_check(ord("D"))){
+    hspeed = 2;
+}
+
+if (!(keyboard_check(ord("A"))) && !(keyboard_check(ord("D")))){
+    hspeed = 0;
+}
+
+execute code:
+
+///bomb throw
+if(global.canBomb){
+    if((keyboard_check_pressed(ord('L')) || keyboard_check_pressed(ord('K'))) && keyboard_check(ord('S')) && global.bombJump){
+        global.throwing = true;
+        global.bombJump = false;
+        alarm[11] = 30;
+        instance_create(x,y,obj_playerBombDown);
+    }
+    else if(keyboard_check_pressed(ord('K')) || keyboard_check_pressed(ord('L')) || global.throwing){
+        if(!(instance_exists(obj_playerBomb) || instance_exists(obj_playerBombDown))){
+            global.throwing = true;
+            instance_change(obj_playerThrowing_Air,true);
+        }
+    }
+    if(keyboard_check_pressed(ord('L')))
+        global.bombSpeed = FAST_BOMB_SPEED;
+    else if(keyboard_check_pressed(ord('K')))
+        global.bombSpeed = SLOW_BOMB_SPEED;
+}
+
+execute code:
+
+///bomb jump
+var bx, by;
+bx = instance_nearest(x, y, obj_bombExplosion).x;
+by = instance_nearest(x, y, obj_bombExplosion).y;
+
+/*if((point_distance(obj_player.x,obj_player.y,bx,by) < 50) && (obj_player.y < by)){
+    vspeed = BOMB_JUMP_HEIGHT;
+}*/
+
+//more precise bomb jump box
+if(abs(bx - obj_player.x) < 15 && abs(by-obj_player.y) < 44 && obj_player.y < by)
+    vspeed = BOMB_JUMP_HEIGHT;
+
+End Step Event:
+
+jump to position (round(x),round(y))
+execute code:
+
+///ycount and collide stuff
+if(y_counter){
+    y_count = y_count + (y - yprevious);
+}
+
+if(y_count >= 28){
+    global.pleaseFall = false;
+    y_counter = false;
+    
+    instance_change(obj_playerAir,true); //turn into obj_playerAir to reset variables and allow free fall
+    
+}
+
+execute code:
+
+///blinking when hit
+
+if(canHurt == false){
+    if (alarm[1] == -1)
+        alarm[1] = 1;
+}else
+    alpha = 1;
+
+execute code:
+
+///update global player location variables
+
+global.playerX = x;
+global.playerY = y;
+
+Collision Event with object obj_wall:
+
+execute code:
+
+///handle potential collisions
+
+if (place_meeting(x,y,obj_platform)){
+    exit;
+}
+
+x = xprevious;
+y = yprevious;
+
+move_contact_all(direction, -1);
+
+
+if(place_meeting(x, yprevious+vspeed, obj_solid)){
+    pvspeed = vspeed;
+    vspeed = 0;
+}else{
+    y = yprevious + vspeed;
+}
+
+if(place_meeting(xprevious+hspeed, y, obj_solid)){
+    hspeed = hspeed;
+}else{
+    x = xprevious + hspeed;
+}
+
+if(place_meeting(x, y+1, obj_floor)){
+    instance_change(obj_playerStand, true);
+}
+
+
+
+Collision Event with object obj_floor:
+
+execute code:
+
+///handle potential collisions
+
+/*if (place_meeting(x,y,obj_platform)){
+    exit;
+}
+*/
+if (state != STATE_DEAD){
+x = xprevious;
+y = yprevious;
+
+move_contact_all(direction, -1);
+
+
+if(place_meeting(x, yprevious+vspeed, obj_solid)){
+    pvspeed = vspeed;
+    vspeed = 0;
+}else{
+    y = yprevious + vspeed;
+}
+
+if(place_meeting(xprevious+hspeed, y, obj_solid)){
+    hspeed = hspeed;
+}else{
+    x = xprevious + hspeed;
+}
+
+if(place_meeting(x, y+1, obj_floor)){
+    instance_change(obj_playerStand, true);
+}
+
+}
+
+Collision Event with object obj_platform:
+
+execute code:
+
+///fall through and land on platforms
+
+if (place_meeting(x,y,obj_wall) && other.x > x){
+    x = xprevious;
+    move_contact_all(0,-1);
+}else if (place_meeting(x,y,obj_wall) && other.x < x){
+     x = xprevious;
+     move_contact_all(180,-1);
+}
+
+
+if(global.pleaseFall == true){
+    y_counter = true;
+    exit;
+}else{
+    if(yprevious+12 > other.y){
+        exit;
+    }
+    
+    x = xprevious;
+    y = yprevious;
+    
+    
+ /*   if (distance_to_object(obj_solid) < abs(vspeed))*/
+     move_contact_all(direction,-1);
+    
+    if(place_meeting(x,yprevious+vspeed,obj_solid)){
+        pvspeed = vspeed;
+        vspeed = 0;
+    }else{
+        y = yprevious + vspeed;
+    }
+    
+    if(place_meeting(xprevious+hspeed,y,obj_solid)){
+        hspeed = hspeed;
+    }else{
+        x = xprevious + hspeed;
+    }
+    
+    if(place_meeting(x,y+1,obj_floor) || place_meeting(x,y+1,obj_platform)){
+        if obj_player.y + 12 < other.y{
+            instance_change(obj_playerStand,true);
+        }
+    }
+}
+
+
+______________________________________________________
+
+Information about object: obj_playerKnockback
+Sprite: spr_playerJumpR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///initialize shit
+state = STATE_KNOCKBACK;
+hitpoints -= 1;
+
+gravity = .5;
+gravity_direction = 270;
+
+canDie = true;
+
+execute code:
+
+///variable to prevent from turning while throwing bomb
+
+global.throwTurnRestrict = false;
+
+execute code:
+
+///play hit sound
+
+audio_play_sound(snd_ouch,1,false);
+
+Destroy Event:
+
+execute code:
+
+///die
+if (hitpoints <= 0 && global.Lives < 0){
+    global.playerX = 0;
+    global.playerY = 0;
+    room_goto(Room_GameOver);
+}else if(hitpoints <= 0)
+    scr_death();
+
+
+Alarm Event for alarm 4:
+
+execute code:
+
+///destroy self
+
+global.Lives -= 1;
+instance_destroy();
+
+Step Event:
+
+execute code:
+
+///falling speed control and death
+
+
+if (vspeed > 12)
+    vspeed = 12;
+    
+    
+if (hitpoints <= 0 && canDie){
+    state = STATE_DEAD;
+    alarm[4] = 45;
+    canDie = false;
+}
+
+switch(state){
+    case STATE_KNOCKBACK:
+        mask_index = spr_playerJumpR;
+        break;
+    case STATE_DEAD:
+        if (facing = FACE_LEFT)
+            mask_index = spr_playerDeadL;
+        else
+            mask_index = spr_playerDeadR;
+        break;
+}
+
+if(place_meeting(x,y+1,obj_solid)){
+     if(hitpoints < 1){
+        move_contact_all(270, -1);
+    }
+}
+
+
+Collision Event with object obj_solid:
+
+execute code:
+
+///handle potential collisions
+
+x = xprevious;
+y = yprevious;
+
+
+move_contact_all(direction, -1);
+
+//move_contact_obj(direction,-1,obj_solid);
+
+if(place_meeting(x, yprevious + vspeed, obj_solid)){
+    vspeed = 0;
+}else{
+    y = yprevious + vspeed;
+}
+
+if(place_meeting(xprevious + hspeed, y, obj_solid)){
+    hspeed = 0;
+}else{
+    x = xprevious + hspeed;
+}
+
+if(place_meeting(x, y+1, obj_floor)){
+    if (hitpoints > 0)
+        instance_change(obj_playerStand, true);    
+}/*else if(place_meeting(x,y+1,obj_solid)){
+     if(hitpoints < 1){
+        move_contact_all(270, -1);
+        instance_destroy();
+    }
+}
+*/
+
+if(state == STATE_DEAD)
+    hspeed = 0;
+
+
+Collision Event with object obj_platform1:
+
+execute code:
+
+///fall through 
+
+/*if(global.pleaseFall == true){
+    y_counter = true;
+    exit;
+}else{*/
+    if(yprevious+12 > other.y){
+        exit;
+    }  
+        
+    x = xprevious;
+    y = yprevious;
+    
+    
+    if (distance_to_object(obj_solid) < abs(vspeed))
+        move_contact_all(direction,-1);
+    
+    if(place_meeting(x,yprevious+vspeed,obj_solid)){
+        vspeed = 0;
+    }else{
+        y = yprevious + vspeed;
+    }
+    
+    if(place_meeting(xprevious+hspeed,y,obj_solid)){
+        hspeed = hspeed;
+    }else{
+        x = xprevious + hspeed;
+    }
+    
+    if(place_meeting(x,y+1,obj_floor) || place_meeting(x,y+1,obj_platform)){
+        if obj_player.y + 12 < other.y{
+            instance_change(obj_playerStand,true);
+        }
+    }
+//}
+
+______________________________________________________
+
+Information about object: obj_playerWalk
+Sprite: spr_playerWalkR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///intitialize movement and gravity
+
+state = STATE_WALK;
+gravity = 0;
+gravity_direction = 270;
+vspeed = 0;
+
+if(facing == FACE_LEFT){
+    hspeed = -2;
+}
+
+if(facing == FACE_RIGHT){
+    hspeed = 2;
+}
+
+Step Event:
+
+execute code:
+
+///if player is not supported, falling
+
+if(!place_meeting(x,y+1,obj_floor) || !place_meeting(x,y+1,obj_platform)){
+    if(place_meeting(x,y+speed,obj_floor) || place_meeting(x,y+speed,obj_platform)){
+        move_contact_all(270,-1);
+    }else{
+        instance_change(obj_playerAir,true);
+    }
+}
+
+execute code:
+
+///change to throw animation, detect throw button
+if(global.canBomb){
+    if((keyboard_check_pressed(ord('L')) || keyboard_check_pressed(ord('K')))&& !keyboard_check_pressed(ord('S')) && global.bombJump){
+        if(!(instance_exists(obj_playerBomb) /*|| instance_exists(obj_playerBombDown)*/)){
+            global.throwing = true;
+            global.bombJump = false;
+            alarm[11] = 30;
+        }
+    }
+    
+    if(keyboard_check_pressed(ord('L')))
+        global.bombSpeed = FAST_BOMB_SPEED;
+    else if(keyboard_check_pressed(ord('K')))
+        global.bombSpeed = SLOW_BOMB_SPEED;
+    
+    if(global.throwing){
+        if(sprite_index == spr_playerWalkR || sprite_index == spr_playerWalkL){
+            if(round(image_index) == 2 || round(image_index) == 6){
+                image_index = 0;
+                instance_change(obj_playerThrowing_Walking,true);
+            }
+        }
+    }
+}
+
+Begin Step Event:
+
+execute code:
+
+///back to obj_playerStand
+instance_change(obj_playerStand,true);
+
+Collision Event with object obj_wall:
+
+execute code:
+
+///xprevious then move to contact
+
+x = xprevious;
+y = yprevious;
+
+move_contact_all(direction,-1);
+
+hspeed = 0;
+
+Collision Event with object obj_platform:
+
+exit this event
+Keyboard Event for S-key Key:
+
+execute code:
+
+///change to jump & pass through platform
+
+if (place_meeting(x,y+1,obj_platform1)){
+    //if (keyboard_check(ord('S'))){
+        if (!place_meeting(x,y+1,obj_wall) && !place_meeting(x,y+1,obj_floor)){ // prevents from dropping down into solid tiles
+            global.pleaseFall = true;
+            instance_change(obj_playerAir,true);
+        }
+   // }
+    else{
+        //vspeed = PLAYER_JUMP_HEIGHT; 
+        //instance_change(obj_playerAir,true);
+    }
+}
+
+execute code:
+
+if(global.canBomb){
+    if((keyboard_check_pressed(ord('K')) ||keyboard_check_pressed(ord('L')))){
+        if (!(instance_exists(obj_playerBombPlaced) || instance_exists(obj_playerBombDown)))
+            instance_create(x,y + 11,obj_playerBombPlaced);
+    }
+
+}
+
+Keyboard Event for W-key Key:
+
+execute code:
+
+///jump
+
+vspeed = PLAYER_JUMP_HEIGHT; 
+    instance_change(obj_playerAir,true);
+
+______________________________________________________
+
+Information about object: obj_playerStand
+Sprite: spr_playerStandR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+/// stop and initializations
+
+speed = 0;
+gravity = 0;
+gravity_direction = 270;
+state = STATE_STAND;
+global.allowThrow = true;
+global.pleaseFall = false;
+
+
+Step Event:
+
+execute code:
+
+///if player is not supported, falling
+
+if(!place_meeting(x,y+1,obj_solid)/* || !place_meeting(x,y+1,obj_platform)*/){
+    instance_change(obj_playerAir,true);
+}
+
+
+
+execute code:
+
+///change state to throw bomb
+if (global.canBomb){
+    if(((keyboard_check_pressed(ord('L')) || keyboard_check_pressed(ord('K'))) || global.throwing) && (!keyboard_check(ord('A')) && !keyboard_check(ord('D')) && !keyboard_check(ord('S')))){
+        if(!(instance_exists(obj_playerBomb) || instance_exists(obj_playerBombDown)))
+            instance_change(obj_playerThrowing_Stand,true);
+    }
+    
+    if(keyboard_check_pressed(ord('L')))
+        global.bombSpeed = FAST_BOMB_SPEED;
+    else if(keyboard_check_pressed(ord('K')))
+        global.bombSpeed = SLOW_BOMB_SPEED;
+}
+
+Collision Event with object obj_solid:
+
+exit this event
+Keyboard Event for A-key Key:
+
+execute code:
+
+///change to walking left
+
+facing = FACE_LEFT;
+
+instance_change(obj_playerWalk,true);
+
+Keyboard Event for D-key Key:
+
+execute code:
+
+///change to walking right
+
+facing = FACE_RIGHT;
+
+instance_change(obj_playerWalk,true);
+
+Keyboard Event for S-key Key:
+
+execute code:
+
+///change to jump & pass through platform
+
+if (place_meeting(x,y+1,obj_platform1)){
+    //if (keyboard_check(ord('S'))){
+        if (!place_meeting(x,y+1,obj_wall) && !place_meeting(x,y+1,obj_floor)){ // prevents from dropping down into solid tiles
+            global.pleaseFall = true;
+            instance_change(obj_playerAir,true);
+        }
+   // }
+    else{
+       // vspeed = PLAYER_JUMP_HEIGHT; 
+       // instance_change(obj_playerAir,true);
+    }
+}
+
+execute code:
+
+///bomb placement
+if(global.canBomb){
+    if((keyboard_check_pressed(ord('L')) || keyboard_check_pressed(ord('K')))){
+        if(!(instance_exists(obj_playerBombPlaced)||instance_exists(obj_playerBombDown)))
+            instance_create(x,y+11,obj_playerBombPlaced);
+    }
+}
+
+Keyboard Event for W-key Key:
+
+execute code:
+
+///change to jump & (pass through platform INACTIVE)
+
+/*
+if (place_meeting(x,y+1,obj_platform1)){
+    //if (keyboard_check(ord('S'))){
+        if (!place_meeting(x,y+1,obj_wall) && !place_meeting(x,y+1,obj_floor)){ // prevents from dropping down into solid tiles
+            global.pleaseFall = true;
+            instance_change(obj_playerAir,true);
+        }
+   // }
+    else{
+        vspeed = PLAYER_JUMP_HEIGHT; 
+        instance_change(obj_playerAir,true);
+    }
+}
+else{*/
+    vspeed = PLAYER_JUMP_HEIGHT; 
+    instance_change(obj_playerAir,true);
+//}
+
+Key Press Event for Key:
+
+execute code:
+
+///change to jump & (pass through platform INACTIVE)
+
+/*
+if (place_meeting(x,y+1,obj_platform1)){
+    //if (keyboard_check(ord('S'))){
+        if (!place_meeting(x,y+1,obj_wall) && !place_meeting(x,y+1,obj_floor)){ // prevents from dropping down into solid tiles
+            global.pleaseFall = true;
+            instance_change(obj_playerAir,true);
+        }
+   // }
+    else{
+        vspeed = PLAYER_JUMP_HEIGHT; 
+        instance_change(obj_playerAir,true);
+    }
+}
+else{*/
+    vspeed = PLAYER_JUMP_HEIGHT; 
+    instance_change(obj_playerAir,true);
+//}
+
+______________________________________________________
+
+Information about object: obj_playerDead
+Sprite: spr_playerDeadR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+/// stop and initializations
+
+//speed = 0;
+gravity_direction = 270;
+state = STATE_DEAD;
+canHurt = false;
+hspeed = 0;
+hitpoints = 0;
+
+  other.vspeed = 0;
+    global.playerX = 0;
+    global.playerY = 0;
+
+global.Lives -= 1;
+
+y+= 12;
+
+if (facing == FACE_LEFT)
+        mask_index = spr_playerDeadL
+    else
+        mask_index = spr_playerDeadR
+
+ 
+while(!(place_meeting(x,y+1,obj_floor))){
+     y+=1
+}
+        
+alarm[0] = 30;
+
+Alarm Event for alarm 0:
+
+execute code:
+
+global.playerX = 0;
+global.playerY = 0;
+    
+
+if (global.Lives < 0)
+    room_goto(Room_GameOver);
+else
+    scr_death();
+    
+    
+instance_destroy();
+
+Step Event:
+
+execute code:
+
+///actions
+
+
+
+
+______________________________________________________
+
+Information about object: obj_player
+Sprite: spr_playerStandR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: 
+
+Children
+obj_playerAir
+obj_playerKnockback
+obj_playerWalk
+obj_playerStand
+obj_playerDead
+obj_playerThrowing_Stand
+obj_playerThrowing_Air
+obj_playerThrowing_Walking
+
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+/// state = STATE_FALL;  instance change to obj_playerFall, other variables
+
+state = STATE_FALL;
+facing = FACE_RIGHT;
+global.bombSpeed = FAST_BOMB_SPEED;
+
+
+global.throwing = false;
+global.bombJump = true;
+global.bombControl = 0;
+
+global.playerX = 0;
+global.playerY = 0;
+
+global.floor_id = 0;
+
+alpha = 1;
+
+global.player = obj_player.id;
+
+if (global.checkpointR == room){
+    x = global.checkpointX;
+    y = global.checkpointY;
+}
+
+execute code:
+
+///health and hurt variables
+
+hitpoints = 5;
+global.maxHitpoints = 5;
+alarm[1] = -1;
+canHurt = true;
+
+execute code:
+
+///instance change to air
+
+instance_change(obj_playerAir,true);
+
+Destroy Event:
+
+execute code:
+
+///set playerX and Y to 0 to avoid AI spaz
+
+if (hitpoints <= 0){
+    global.playerX = 0;
+    global.playerY = 0;
+}
+
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///canHurt = true
+
+canHurt = true;
+
+Alarm Event for alarm 1:
+
+execute code:
+
+///player invincibility blinking
+
+if(!canHurt){
+    if(alpha == 1){
+        alpha = .2;
+    }else{
+        alpha = 1;
+    }
+}
+
+Alarm Event for alarm 11:
+
+execute code:
+
+///bombjump variable
+global.bombJump = true;
+
+End Step Event:
+
+jump to position (round(x),round(y))
+execute code:
+
+///blinking when hit
+
+if(canHurt == false){
+    if (alarm[1] == -1)
+        alarm[1] = 1;
+}else
+    alpha = 1;
+    
+if(state == STATE_DEAD){
+    if (facing == FACE_LEFT)
+        mask_index = spr_playerDeadL
+    else
+        mask_index = spr_playerDeadR
+}
+    
+
+
+
+execute code:
+
+///update global player location variables
+
+global.playerX = x;
+global.playerY = y;
+
+
+global.floor_id = instance_place(global.playerX,global.playerY+1,obj_solid);
+
+Collision Event with object obj_damage:
+
+execute code:
+
+///get hurt
+
+if (canHurt = true){
+    canHurt = false;
+    alarm[0] = INVINCIBILITY_TIME;
+    vspeed = -5;
+    instance_change(obj_playerKnockback,true);
+    
+    if (other.x > x){
+        hspeed = -2;
+    }else{
+        hspeed = 2;
+    }
+}
+
+Keyboard Event for T-key Key:
+
+execute code:
+
+///health++
+
+hitpoints++;
+
+Draw Event:
+
+execute code:
+
+///drawing sprite and shit
+
+if(facing == FACE_RIGHT){
+    switch(state){
+        case STATE_STAND:
+            draw_sprite_ext(spr_playerStandR,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED/3; //used to be 0.08
+            break;
+   
+        case STATE_WALK:
+            draw_sprite_ext(spr_playerWalkR,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED; //this used to be 0.3
+            break;
+   
+        case STATE_JUMP:
+            draw_sprite_ext(spr_playerJumpR,-1,x,y,1,1,0,c_white,alpha);
+            break;
+   
+        case STATE_FALL:
+            draw_sprite_ext(spr_playerJumpR,-1,x,y,1,1,0,c_white,alpha);
+            break;
+        
+        case STATE_STAND_THROW:
+            draw_sprite_ext(spr_playerStandThrowR,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED*2;
+            break;
+            
+        case STATE_WALK_THROW:
+            draw_sprite_ext(spr_playerWalkThrowR,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED*2;
+            break;
+            
+        case STATE_AIR_THROW:
+            draw_sprite_ext(spr_playerAirThrowR,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED*2;
+            break;    
+   
+        case STATE_KNOCKBACK:
+            draw_sprite_ext(spr_playerJumpR,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = 2*THROW_SPEED;
+            break;
+        
+        case STATE_DEAD:
+            draw_sprite_ext(spr_playerDeadR,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = 2*THROW_SPEED;
+            break;
+    }
+}
+
+else if(facing == FACE_LEFT){
+    switch(state){
+      case STATE_STAND:
+            draw_sprite_ext(spr_playerStandL,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED/3;  //used to be 0.08
+            break;
+   
+       case STATE_WALK:
+            draw_sprite_ext(spr_playerWalkL,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED; // this used to be 0.3
+            break;
+   
+       case STATE_JUMP:
+            draw_sprite_ext(spr_playerJumpL,-1,x,y,1,1,0,c_white,alpha);
+            break;
+   
+      case STATE_FALL:
+            draw_sprite_ext(spr_playerJumpL,-1,x,y,1,1,0,c_white,alpha);
+            break;
+      
+      case STATE_STAND_THROW:
+            draw_sprite_ext(spr_playerStandThrowL,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED*2;
+            break;
+            
+      case STATE_WALK_THROW:
+            draw_sprite_ext(spr_playerWalkThrowL,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED*2;
+            break;
+            
+      case STATE_AIR_THROW:
+            draw_sprite_ext(spr_playerAirThrowL,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = THROW_SPEED*2;
+            break;    
+            
+      case STATE_KNOCKBACK:
+            draw_sprite_ext(spr_playerJumpL,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = 2*THROW_SPEED;
+            break;
+            
+      case STATE_DEAD:
+            draw_sprite_ext(spr_playerDeadL,-1,x,y,1,1,0,c_white,alpha);
+            image_speed = 2*THROW_SPEED;
+            break;
+    }
+}
+
+Draw GUI Event:
+
+execute code:
+
+/// draw health
+
+
+for(i = obj_player.hitpoints; i > 0; i -= 1){
+    draw_sprite_ext(spr_heart,0,view_wport[0] - 150 - 30*i,50,3,3,0,c_white,1);
+}
+
+draw_sprite_ext(spr_lives,0,view_wport[0]-150-60,100,3,3,0,c_white,1);
+
+draw_set_font(Lucida_Console);
+draw_set_color(c_white);
+draw_text(view_wport[0]-150-25,100,global.Lives);
+
+Key Press Event for R-key Key:
+
+restart the game
+______________________________________________________
+
+Information about object: obj_playerThrowing_Stand
+Sprite: spr_playerStandThrowR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///initialize
+state = STATE_STAND_THROW;
+speed = 0;
+gravity = 0;
+gravity_direction = 270;
+
+execute code:
+
+///variable to prevent from turning while throwing bomb
+
+global.throwTurnRestrict = true;
+
+Step Event:
+
+execute code:
+
+///INACTIVE change state to throw bomb
+/*
+if(keyboard_check_pressed(ord('L')) || global.throwing){
+    instance_change(obj_playerThrowing_Stand,true);
+}*/
+
+execute code:
+
+///throw bomb
+
+if(floor(image_index) == 7){
+    if(state == STATE_STAND_THROW){
+        if(global.allowThrow){
+            instance_create(x,y,obj_playerBomb);
+            global.allowThrow = false;
+            global.throwTurnRestrict = false;
+            //instance_change(obj_playerStand,true);
+        }
+    }
+}
+
+Keyboard Event for A-key Key:
+
+execute code:
+
+///facing and walk throw
+
+facing = FACE_LEFT;
+
+instance_change(obj_playerThrowing_Walking,true);
+
+Keyboard Event for D-key Key:
+
+execute code:
+
+///facing and walk throw
+
+facing = FACE_RIGHT;
+
+instance_change(obj_playerThrowing_Walking,true);
+
+Other Event: Animation End:
+
+execute code:
+
+///change instance
+/*
+if(state == STATE_STAND_THROW){
+    instance_create(x,y,obj_playerBomb);
+    instance_change(obj_playerStand,true);
+}*/
+
+instance_change(obj_playerStand,true);
+
+Key Press Event for Key:
+
+execute code:
+
+/// change to jumping throwing
+
+vspeed = PLAYER_JUMP_HEIGHT; 
+instance_change(obj_playerThrowing_Air,true);
+
+Key Press Event for W-key Key:
+
+execute code:
+
+/// change to jumping throwing
+
+vspeed = PLAYER_JUMP_HEIGHT; 
+instance_change(obj_playerThrowing_Air,true);
+
+______________________________________________________
+
+Information about object: obj_playerThrowing_Air
+Sprite: spr_playerAirThrowR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///variable to prevent from turning while throwing bomb
+
+global.throwTurnRestrict = true;
+
+execute code:
+
+///init
+
+state = STATE_AIR_THROW;
+
+gravity = .5;
+gravity_direction = 270;
+
+Step Event:
+
+execute code:
+
+///midair movement
+
+if(keyboard_check(ord("A"))){
+    hspeed = -2;
+}
+
+if(keyboard_check(ord("D"))){
+    hspeed = 2;
+}
+
+if (!(keyboard_check(ord("A"))) && !(keyboard_check(ord("D")))){
+    hspeed = 0;
+}
+
+execute code:
+
+///throw bomb
+
+if(floor(image_index) == 7){
+    if(state == STATE_AIR_THROW){
+        if(global.allowThrow){
+            instance_create(x,y,obj_playerBomb);
+            global.allowThrow = false;
+            //instance_change(obj_playerStand,true);
+        }
+    }
+}
+
+Collision Event with object obj_solid:
+
+execute code:
+
+///handle potential collisions
+
+x = xprevious;
+y = yprevious;
+
+move_contact_all(direction, -1);
+
+if(place_meeting(x, yprevious+vspeed, obj_solid)){
+    vspeed = 0;
+}else{
+    y = yprevious + vspeed;
+}
+
+if(place_meeting(xprevious+hspeed, y, obj_solid)){
+    hspeed = hspeed;
+}else{
+    x = xprevious + hspeed;
+}
+
+if(place_meeting(x, y+1, obj_floor)){
+    instance_change(obj_playerThrowing_Stand, true);
+} 
+
+Collision Event with object obj_platform:
+
+execute code:
+
+///more collisions
+
+if(yprevious+12 > other.y){
+    exit;
+}
+
+x = xprevious;
+y = yprevious;
+
+move_contact_all(direction,-1);
+
+if(place_meeting(x,yprevious+vspeed,obj_solid)){
+    vspeed = 0;
+}else{
+    y = yprevious + vspeed;
+}
+
+if(place_meeting(xprevious+hspeed,y,obj_solid)){
+    hspeed = hspeed;
+}else{
+    x = xprevious + hspeed;
+}
+
+if(place_meeting(x,y+1,obj_floor) || place_meeting(x,y+1,obj_platform)){
+    instance_change(obj_playerThrowing_Stand,true);
+}
+
+Other Event: Animation End:
+
+execute code:
+
+///throw bomb
+
+instance_change(obj_playerAir,true);
+
+______________________________________________________
+
+Information about object: obj_playerThrowing_Walking
+Sprite: spr_playerWalkThrowR
+Solid: false
+Visible: true
+Depth: -100
+Persistent: true
+Parent: obj_player
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///variable to prevent from turning while throwing bomb
+
+global.throwTurnRestrict = true;
+
+execute code:
+
+///intitialize movement and gravity
+
+state = STATE_WALK_THROW;
+gravity = 0;
+gravity_direction = 270;
+vspeed = 0;
+
+
+if (facing == FACE_LEFT){
+    hspeed = -2;
+}
+else if (facing == FACE_RIGHT){
+    hspeed = 2;
+}
+
+Step Event:
+
+execute code:
+
+///if player is not supported, falling
+
+if(!place_meeting(x,y+1,obj_floor) || !place_meeting(x,y+1,obj_platform)){
+    if(place_meeting(x,y+speed,obj_floor) || place_meeting(x,y+speed,obj_platform)){
+        move_contact_all(270,-1);
+    }else{
+        global.throwing = false;
+        instance_change(obj_playerThrowing_Air,true);
+    }
+}
+
+execute code:
+
+///throw bomb
+
+if(floor(image_index) == 7){
+    if(state == STATE_WALK_THROW){
+        if(global.allowThrow){
+            instance_create(x,y,obj_playerBomb);
+            global.allowThrow = false;
+            global.throwTurnRestrict = false;
+            //instance_change(obj_playerStand,true);
+        }
+    }
+}
+
+Begin Step Event:
+
+execute code:
+
+///back to obj_playerStandthrowing
+instance_change(obj_playerThrowing_Stand,true);
+
+Collision Event with object obj_wall:
+
+execute code:
+
+///xprevious then move to contact
+
+x = xprevious;
+y = yprevious;
+
+move_contact_all(direction,-1);
+
+hspeed = 0;
+
+Collision Event with object obj_platform:
+
+exit this event
+Other Event: Animation End:
+
+execute code:
+
+///bomb throw instance change
+
+image_index = 6;
+instance_change(obj_playerStand,true);
+
+______________________________________________________
+
+Information about object: obj_playerBombDown
+Sprite: spr_playerBomb
+Solid: false
+Visible: true
+Depth: -101
+Persistent: false
+Parent: obj_playerBomb
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+
+if (global.bombControl == 1){
+    vspeed = 0;
+    global.bombControl = 0;
+}else
+    vspeed = obj_player.vspeed + 10;
+
+gravity = .5;
+
+if (vspeed > 12){
+    vspeed = 12;
+}
+global.enemyCollision = false;
+global.throwing = false;
+
+______________________________________________________
+
+Information about object: obj_playerBombPlaced
+Sprite: spr_playerBomb
+Solid: false
+Visible: true
+Depth: -101
+Persistent: false
+Parent: obj_playerBomb
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///start timer
+
+alarm[0] = 30;
+global.enemyCollision = false;
+
+set the relative path to  with speed 0 and at the end stop
+Alarm Event for alarm 0:
+
+execute code:
+
+instance_destroy();
+
+instance_create(x,y,obj_bombExplosion);
+
+Step Event:
+
+execute code:
+
+///check beneath
+
+if(!place_meeting(x,y+1,obj_solid)){
+    global.bombControl = 1;
+    instance_change(obj_playerBombDown,true);  
+}
+
+Collision Event with object obj_enemy:
+
+execute code:
+
+global.enemyCollision = true;
+instance_destroy();
+
+instance_create(x,y,obj_bombExplosionJumpless);
+
+______________________________________________________
+
+Information about object: obj_bombExplosion
+Sprite: spr_bombExplosion
+Solid: false
+Visible: true
+Depth: -101
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Other Event: Animation End:
+
+destroy the instance
+______________________________________________________
+
+Information about object: obj_bombExplosionJumpless
+Sprite: spr_bombExplosion
+Solid: false
+Visible: true
+Depth: -101
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Other Event: Animation End:
+
+destroy the instance
+______________________________________________________
+
+Information about object: obj_playerBomb
+Sprite: spr_playerBomb
+Solid: false
+Visible: true
+Depth: -101
+Persistent: false
+Parent: 
+
+Children
+obj_playerBombDown
+obj_playerBombPlaced
+
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///initialize shit
+
+global.throwing = false;
+
+if (obj_player.facing == FACE_RIGHT){ //different position of bomb for different direction bc flip misalignment
+    x = (obj_player.facing*2) + obj_player.x;
+}else if(obj_player.facing == FACE_LEFT){
+    x = (obj_player.facing*8) + obj_player.x;
+}
+
+y = obj_player.y - 6;
+
+image_speed = 0.75;
+
+vspeed = -4;
+gravity = .5;
+gravity_direction = 270;
+
+global.enemyCollision = false;
+
+hspeed = obj_player.facing * global.bombSpeed + obj_player.hspeed;
+//throw speed relative to player movement- player can run into throw
+
+if (abs(hspeed + obj_player.hspeed) < abs(hspeed)){
+    hspeed = obj_player.facing * global.bombSpeed;
+}// but if player is moving away from their throw, dont detract from the throw's speed
+
+
+
+
+Destroy Event:
+
+execute code:
+
+///play explosion sound
+
+audio_play_sound(snd_explosion,1,false);
+
+Collision Event with object obj_solid:
+
+execute code:
+
+///bomb collision control with solid
+if (place_meeting(x,y,obj_platform1))
+    exit;
+else{
+    //move to contact
+        x = xprevious;
+        y = yprevious;
+        move_contact_all(direction,-1)
+        instance_create(x,y,obj_bombExplosion)
+        instance_destroy();
+}
+
+execute code:
+
+///continue moving
+
+
+Collision Event with object obj_portal:
+
+execute code:
+
+///continue moving
+
+x = x + hspeed;
+y = y + vspeed;
+
+execute code:
+
+///destroy and explode
+
+instance_destroy();
+instance_create(x,y,obj_bombExplosion);
+
+Collision Event with object obj_enemy:
+
+execute code:
+
+///continue moving
+
+/*x = x + hspeed;
+y = y + vspeed;*/
+
+execute code:
+
+///destroy and enemyCollision
+
+global.enemyCollision = true;
+instance_destroy();
+instance_create(x,y,obj_bombExplosionJumpless);
+
+Other Event: Outside Room:
+
+destroy the instance
+______________________________________________________
+
+Information about object: obj_healthHeart1
+Sprite: spr_heart
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+
+Children
+obj_healthHeart1DROP
+
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///alarm for image speed
+
+image_speed = THROW_SPEED;
+
+alarm[0] = irandom(15);
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///image speed
+
+image_speed = 1/15; ///twice a second
+
+Collision Event with object obj_player:
+
+execute code:
+
+///destroy self
+
+if(obj_player.hitpoints < global.maxHitpoints){
+    obj_player.hitpoints += 1;
+    instance_destroy();
+    audio_play_sound(snd_pickup,1,false);
+}
+
+
+
+______________________________________________________
+
+Information about object: obj_healthHeart1DROP
+Sprite: spr_heart
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_healthHeart1
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///set to disappear
+
+image_speed = 0;
+alarm[0] = irandom(15);
+alarm[1] = 360;
+
+Alarm Event for alarm 1:
+
+execute code:
+
+///destroy self
+
+instance_destroy();
+
+Step Event:
+
+execute code:
+
+///drop to ground
+
+if (!(place_meeting(x,y+1,obj_solid))){
+    vspeed = 1;
+    if (place_meeting(x,y+2,obj_solid)){
+        move_contact_all(270,-1);
+        vspeed = 0;
+    }
+}else
+    vspeed = 0;
+
+______________________________________________________
+
+Information about object: obj_lifeDROP
+Sprite: spr_lives
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///set to disappear
+
+alarm[1] = 360;
+
+Alarm Event for alarm 1:
+
+execute code:
+
+///destroy self
+
+instance_destroy();
+
+Step Event:
+
+execute code:
+
+///drop to ground
+
+if (!(place_meeting(x,y+1,obj_solid))){
+    vspeed = 1;
+    if (place_meeting(x,y+2,obj_solid)){
+        move_contact_all(270,-1);
+        vspeed = 0;
+    }
+}else
+    vspeed = 0;
+
+Collision Event with object obj_player:
+
+execute code:
+
+///play sound
+
+audio_play_sound(snd_pickup,1,false);
+
+execute code:
+
+///increase lives
+
+global.Lives += 1;
+instance_destroy();
+
+______________________________________________________
+
+Information about object: obj_bombBoots
+Sprite: spr_rocketBoots
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///alarm for image speed
+
+image_speed = 0;
+alarm[0]=irandom(15);
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///image speed
+
+image_speed = 1/15; ///twice a second
+
+______________________________________________________
+
+Information about object: obj_bombBag
+Sprite: spr_bombBag
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///alarm for image speed
+
+image_speed = 0;
+alarm[0]=irandom(15);
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///image speed
+
+image_speed = 1/15; ///twice a second
+
+Collision Event with object obj_player:
+
+execute code:
+
+///give player bomb, destroy
+
+global.canBomb = true;
+
+instance_create(x+20,y-30,obj_KL);
+instance_destroy();
+
+______________________________________________________
+
+Information about object: obj_black
+Sprite: spr_black
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+______________________________________________________
+
+Information about object: obj_laserTrapBoss1
+Sprite: spr_laserTrapRight
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///initialize
+
+engaged = true;
+canShoot = true;
+top = 1;
+bottom = 0;
+
+if (x < room_width/2){
+    side = -1;
+}else{
+    side = 1;
+}
+
+Step Event:
+
+execute code:
+
+///determine if should engage, engages
+
+if (global.boss1Level == top){
+    if (y < room_height/2){
+        engaged = false;
+    }else{
+        engaged = true;
+    }
+}else{
+    if (y < room_height/2){
+        engaged = true;
+    }else{
+        engaged = false;
+    }
+}
+
+if (engaged == true){
+    if (side == -1){
+        if (canShoot == true){
+            instance_create(x,y+4,obj_beam408H1);
+            canShoot = false; //canShoot is made true again in boss alarm event when it moves
+        }
+    }
+}
+
+Draw Event:
+
+execute code:
+
+///draw laser trap
+
+if (x < room_width/2){
+    if (engaged == true){
+        draw_sprite(spr_laserTrapRight,1,x,y);
+    }else{
+        draw_sprite(spr_laserTrapRight,0,x,y);
+    }
+}else{
+    if (engaged == true){
+        draw_sprite(spr_laserTrapLeft,1,x,y);
+    }else{
+        draw_sprite(spr_laserTrapLeft,0,x,y);
+    }
+}
+
+______________________________________________________
+
+Information about object: obj_boss1
+Sprite: spr_boss1AttackRight
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_enemy
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///go to random station, constants for states
+
+STAND = 0;
+MOVE = 1;
+ATTACK = 2;
+DEAD = 3;
+
+a = 1; //alpha for fade
+
+
+startL = -81;
+endL = 0;
+startR = 441;
+endR = 348;
+
+hitpoints = 8;
+
+allowAlarm = true;
+
+canShoot = true;
+top = 1;
+bottom = 0;
+global.boss1Level = top;
+image_speed = 1/4;
+image_index = 0;
+
+randomize();
+position = irandom(1);
+pposition = position;
+if(position == 0){
+    x = startL;
+    y = 84;
+    state = MOVE;
+    global.boss1Level = top;
+}else if(position == 1){
+    x = startR;
+    y = 84;
+    state = MOVE;
+    global.boss1Level = top;
+}
+canCount = true;
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///go to random station
+randomize();
+position = irandom(3);
+while(position == pposition){ //to prevent enemy from staying in same place
+    randomize();
+    position = irandom(3);
+}
+pposition = position;
+
+if(position == 0){
+    x = startL;
+    y = 84;
+    state = MOVE;
+    global.boss1Level = top;
+    obj_laserTrapBoss1.canShoot = true;
+}else if(position == 1){
+    x = startL;
+    y = 180;
+    state = MOVE;
+    global.boss1Level = bottom;
+    obj_laserTrapBoss1.canShoot = true;
+}else if(position == 2){
+    x = startR;
+    y = 84;
+    state = MOVE;
+    global.boss1Level = top;
+    obj_laserTrapBoss1.canShoot = true;
+}else if(position == 3){
+    x = startR;
+    y = 180;
+    state = MOVE;
+    global.boss1Level = bottom;
+    obj_laserTrapBoss1.canShoot = true;
+}
+canCount = true;
+
+Alarm Event for alarm 1:
+
+execute code:
+
+///canShoot = true, attack mode
+if(state == STAND){
+    state = ATTACK;
+    canShoot = true;
+    alarm[1] = 100;
+}
+
+Alarm Event for alarm 2:
+
+execute code:
+
+///cry
+
+    audio_play_sound(snd_bossCry,1,false);
+
+Step Event:
+
+execute code:
+
+///damage and death tracking
+
+if (hitpoints <= 0){
+    state = DEAD;
+    alarm[0] = 30;
+    mask_index = spr_noMask;
+    global.canDrops = false;
+    if (instance_exists(obj_walkEnemy)){
+        with(obj_walkEnemy)
+            instance_destroy();
+    }
+}
+
+
+execute code:
+
+///pretty much everything
+if(canCount == true){
+    alarm[0]= 300;
+    canCount = false;
+}
+
+if (x == endL){
+    
+    hspeed = 0;
+    if (allowAlarm){
+       alarm[1] = 30;
+       allowAlarm = false;
+       state = STAND;
+    }
+}
+
+if (x == endR){
+
+    hspeed = 0;
+    if (allowAlarm){
+       alarm[1] = 30;
+       allowAlarm = false
+       state = STAND;
+    }
+}
+
+if (alarm[0] == 60){
+    state = MOVE;
+}
+
+if (state == MOVE){
+    if(x == endL || x == endR)
+        allowAlarm = true;
+        
+    if(x == endL){
+        hspeed = -1.5;
+    }else if(x == endR){
+        hspeed = 1.5;
+    }else if(x == startL){
+        hspeed = 1.5;
+    }else if(x == startR){
+        hspeed = -1.5;
+    }
+}
+
+
+if (state == ATTACK){
+    hspeed = 0;
+    if (global.playerX > x){ //throw acid/enemy bomb
+        if (canShoot == true){
+            image_index = 1;
+            new_bomb = instance_create(x+8,y+40,obj_greenBomb);
+            new_bomb.vspeed = -7;
+            new_bomb.hspeed = 3.9;
+            canShoot = false;
+        }
+    }else{
+        if (canShoot == true){
+            image_index = 1;
+            new_bomb = instance_create(x+8,y+40,obj_greenBomb);
+            new_bomb.vspeed = -7;
+            new_bomb.hspeed = -3.9;
+            canShoot = false;
+        }
+    }
+}
+
+
+Collision Event with object obj_playerBomb:
+
+execute code:
+
+///get hit
+
+if (state == STAND || state == ATTACK){
+    hitpoints -= 1;
+    alarm[0] = 61;
+    canCount = false;
+    alarm[2] = 1;
+}
+
+Other Event: Animation End:
+
+execute code:
+
+/// sprite control
+
+if(state == ATTACK)
+    state = STAND;
+
+Draw Event:
+
+execute code:
+
+
+if (x < room_width/2){
+    if (state == MOVE){
+        draw_sprite(spr_boss1WalkForwardRight,-1,x,y);
+         if (hspeed > 0){
+            image_speed = .25;
+        }else{
+            image_speed = -.25;
+        }
+    }else if (state == ATTACK){
+        draw_sprite(spr_boss1AttackRight,-1,x,y);
+        image_speed = .25
+    }else if (state == STAND){
+        draw_sprite(spr_boss1StandRight,-1,x,y);
+        image_speed = .1
+    }else if (state == DEAD){
+        draw_sprite_ext(spr_boss1DeadRight,-1,x,y,1,1,0,c_white,a);
+        a-=.007;
+        alarm[0] = 30;
+    }
+}else{
+    if (state == MOVE){
+        draw_sprite(spr_boss1WalkForwardLeft,-1,x,y);
+        if (hspeed < 0){
+            image_speed = .25;
+        }else{
+            image_speed = -.25;
+        }
+    }else if (state == ATTACK){
+        draw_sprite(spr_boss1AttackLeft,-1,x,y);
+        image_speed = .25;
+    }else if (state == STAND){
+        draw_sprite(spr_boss1StandLeft,-1,x,y);
+        image_speed = .1;
+    }else if (state == DEAD){
+        draw_sprite_ext(spr_boss1DeadLeft,-1,x,y,1,1,0,c_white,a);
+        a -= .007;
+        alarm[0] = 30;
+    }
+}
+
+Draw GUI Event:
+
+execute code:
+
+///draw health
+
+for(i = hitpoints; i > 0; i -= 1){
+    draw_sprite_ext(spr_enemyHealth,0,150 + 26*i,50,3,3,0,c_white,255);
+}
+
+______________________________________________________
+
+Information about object: obj_greenBomb
+Sprite: spr_acidBomb
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_damage
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///gravity
+
+gravity = 0.5;
+enemyCollision = false;
+
+Destroy Event:
+
+execute code:
+
+///explode, spawn
+
+//*explode*
+if (!enemyCollision){
+    instance_create(x,y,obj_greenSplash);
+    
+    randomize();
+    
+    if(irandom(1) == 0){
+        if(instance_number(obj_walkEnemy) < 2){
+            var enemy = instance_create(floor(x+18),floor(y+23),obj_walkEnemy);
+        }
+    }
+    audio_play_sound(snd_acid,1,false);
+}
+
+End Step Event:
+
+execute code:
+
+///kill self
+
+if (place_meeting(x+hspeed,y+vspeed,obj_solid)){
+    move_contact_all(direction,-1);
+}
+
+if (place_meeting(x,y+1,obj_solid)){
+    instance_destroy();
+}
+
+if (place_meeting(x,y,obj_enemy) && !(place_meeting(x,y,obj_boss1))){
+    enemyCollision = true;
+    instance_destroy();
+}
+
+Collision Event with object obj_solid:
+
+execute code:
+
+///move to contact
+
+x = xprevious;
+y = yprevious;
+
+move_contact_all(direction,-1);
+
+______________________________________________________
+
+Information about object: obj_greenSplash
+Sprite: spr_acidSplash
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_damage
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///image speed
+image_speed = .25;
+
+Other Event: Animation End:
+
+execute code:
+
+///die
+
+instance_destroy();
+
+______________________________________________________
+
+Information about object: obj_beam408H1
+Sprite: spr_beam408H1
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///set alarm to change
+
+alarm[0] = 100
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///change object
+
+instance_change(obj_beam408H2, true);
+
+______________________________________________________
+
+Information about object: obj_beam408H2
+Sprite: spr_beam408H2
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: obj_damage
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///set alarm to destroy
+
+alarm[0] = 45
+
+Alarm Event for alarm 0:
+
+destroy the instance
+______________________________________________________
+
+Information about object: obj_fadeOut
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///init
+
+alpha = 0;
+
+Step Event:
+
+execute code:
+
+///change rooms
+
+if(!instance_exists(obj_player)){
+    room_restart();
+    instance_create(204,-60,obj_player);
+}
+
+global.canBomb = true;
+
+if (alpha >= 1){
+    with(obj_player)
+        instance_destroy();
+    room_goto(Room_end);
+}
+
+Draw GUI Event:
+
+execute code:
+
+///fade
+
+if (obj_boss1.a < 0){
+    alpha += 0.01;
+    draw_set_alpha(alpha);
+    draw_set_colour(c_black);
+    draw_rectangle(0, 0, 3000, 3000, false);
+}
+
+______________________________________________________
+
+Information about object: obj_gameOver
+Sprite: spr_game
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///image speed
+
+image_speed = 1/30;
+
+______________________________________________________
+
+Information about object: obj_gameOver2
+Sprite: spr_over
+Solid: false
+Visible: true
+Depth: -1
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///image speed
+
+image_speed = 1/30;
+
+______________________________________________________
+
+Information about object: obj_continue
+Sprite: spr_continue
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Mouse Event for Left Released:
+
+execute code:
+
+game_restart();
+
+______________________________________________________
+
+Information about object: obj_quit
+Sprite: spr_quit
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Mouse Event for Left Released:
+
+end the game
+______________________________________________________
+
+Information about object: obj_gameEnd
+Sprite: spr_gameEnd
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///init
+
+alph = 0;
+
+Draw Event:
+
+execute code:
+
+///draw sprite and increment
+
+if (alph < 1)
+    alph += .01;
+
+draw_sprite_ext(spr_gameEnd,-1,x,y,1,1,0,c_white,alph);
+
+
+
+______________________________________________________
+
+Information about object: obj_KL
+Sprite: spr_KL
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+a = 0;
+
+Other Event: Room End:
+
+execute code:
+
+///destroy
+instance_destroy();
+
+Draw Event:
+
+execute code:
+
+///draw sprite
+
+if (a < 1)
+    a+= 0.01;
+    
+draw_sprite_ext(spr_KL,0,x,y,1,1,0,c_white,a);
+
+______________________________________________________
+
+Information about object: obj_WASD
+Sprite: spr_WASD
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+a = 0;
+
+canFade = false;
+canAlarm = true;
+
+Alarm Event for alarm 0:
+
+execute code:
+
+///canFade = true
+
+canFade = true;
+
+Step Event:
+
+execute code:
+
+///control fades
+
+
+if (a < 1 && !canFade)
+    a+= 0.01;
+
+if (a == 1 && canAlarm){
+    alarm[0] = 60;
+    canAlarm = false;
+}
+
+if(a > 0 && canFade)
+    a -= 0.01
+
+if(a == 0)
+    instance_destroy();
+
+Other Event: Room End:
+
+execute code:
+
+///destroy
+instance_destroy();
+
+Draw Event:
+
+execute code:
+
+///draw sprite
+
+    
+draw_sprite_ext(spr_WASD,0,x,y,1,1,0,c_white,a);
+
+______________________________________________________
+
+Information about object: obj_checkpoint
+Sprite: spr_checkpoint
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Children: 
+Mask: 
+
+No Physics Object
+Create Event:
+
+execute code:
+
+///image speed, init
+
+image_speed = 0;
+image_index = 0;
+
+
+Step Event:
+
+execute code:
+
+///events
+
+if (place_meeting(x,y,obj_player)){
+    if(global.checkpointX != x || global.checkpointY != y){
+        if(y > 0)
+            audio_play_sound(snd_checkpoint,1,false)
+    }
+    global.checkpoint = id;
+    global.checkpointX = x;
+    global.checkpointY = y;
+    global.checkpointR = room; 
+}
+
+if(global.checkpoint == id)
+    image_index = 0;
+else
+    image_index = 1;
+
+
+______________________________________________________
